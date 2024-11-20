@@ -1,0 +1,22 @@
+
+.nav-link {
+  color: #e11d48;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: #d1d5db;
+}
+
+a .active {
+  color: #0063f7; 
+  font-weight: bold;
+}
+
+.mobile-nav-link {
+  color: white;
+}
+
+.mobile-nav-link:hover {
+  color: #d1d5db; 
+}
