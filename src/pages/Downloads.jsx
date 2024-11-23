@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { message } from "antd";
-export const Welcome = () => {
+const Downloads = () => {
   const [name, setName] = useState("");
 
   const [greetMsg, setGreetMsg] = useState("");
@@ -17,7 +17,7 @@ export const Welcome = () => {
 
   return (
     <>
-      <h1>Welcome to yt-dlp-GUI</h1>
+      <h1>Downloads page</h1>
 
       <p>Enter a youtube link or video code below</p>
       <form
@@ -38,4 +38,4 @@ export const Welcome = () => {
   );
 };
 
-export default Welcome
+export default Downloads
