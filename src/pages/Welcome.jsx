@@ -1,78 +1,62 @@
 import React, { useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { message } from "antd";
+import { validateLink } from "../utils/utils";
+import FormatTable from "../components/FormatTable";
 
 const Welcome = () => {
   const [ytLink, setYtLink] = useState("");
   const [formats, setFormats] = useState([]);
   const [error, setError] = useState("");
 
-  // Function to validate YouTube URL
-  const validateLink = (url) => {
-    const regex = /^(https?:\/\/)?(www\.)?(youtube|youtu|vimeo)\.(com|be)\/.*$/;
-    return regex.test(url);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!validateLink(ytLink)) {
       setError("Please enter a valid YouTube link.");
-      message.error("Please enter a valid YouTube link.");
+      message.warning(" Please enter a valid YouTube link.🚨");
       return;
     }
-
+  
     setError("");
-    setFormats([])
-    const loadingMessage = message.loading(
-      `Fetching formats for ${ytLink}...`,
-      0
-    );
-
+    setFormats([]);
+    const loadingMessage = message.loading(`🚀 Fetching formats for ${ytLink}...`, 0);
+  
     try {
+      // Log the start of the Tauri function
+      console.log("Invoking Tauri to fetch video formats...");
       const videoInfo = await invoke("get_video_formats", { url: ytLink });
-
+      console.log("Received video info:", videoInfo);  // Debug log for the video info
+      
       const parsedInfo = JSON.parse(videoInfo);
       const filteredFormats = parsedInfo.formats.filter(
         (format) =>
-          format.protocol === "https" && // Only https
-          // format.resolution !== "audio only" && 
-          !format.format_note.includes("storyboard") // Skip storyboard formats
+          format.protocol === "https" &&
+          !format.format_note.includes("storyboard")
       );
-      console.log(filteredFormats);
+  
       setFormats(filteredFormats);
-      loadingMessage();
-      message.success(`Formats fetched successfully for ${ytLink}`);
+      loadingMessage();  // Close loading message
+      message.success(`🎉 Formats fetched successfully for ${ytLink}`);
     } catch (err) {
       console.error("Error fetching formats:", err);
-      loadingMessage();
-      setError("Failed to fetch video formats. Please try again.");
-      message.error("Failed to fetch video formats.");
+      loadingMessage();  // Close loading message
+      setError("❌ Failed to fetch video formats. Please try again.");
+      message.error("❌ Failed to fetch video formats.");
     }
   };
+  
 
-  // Function to format file size in MB/GB
-  const formatFileSize = (sizeInBytes) => {
-    if (!sizeInBytes) return "N/A";
-    const sizeInMB = sizeInBytes / (1024 * 1024);
-    return sizeInMB >= 1024
-      ? `${(sizeInMB / 1024).toFixed(2)} GB`
-      : `${sizeInMB.toFixed(2)} MB`;
-  };
-
-  // Function to handle row click
   const handleRowClick = (item) => {
-    console.log(item)
-    message.success(`Successfully clicked on format with ID: ${item.format_id}`);
+    console.log(item);
+    message.success(` Successfully clicked on format with ID: ${item.format_id} ✅`);
   };
 
   return (
     <div className="flex flex-col items-center min-h-screen bg-gray-800 text-white pt-5">
       <header className="text-center">
         <h1 className="text-3xl font-bold mb-4">Welcome to yt-dlp-GUI</h1>
-        <p className="mb-6">
-          Enter a YouTube link below to fetch available formats.
-        </p>
+        <p className="mb-6">Enter a YouTube link below to fetch available formats.</p>
       </header>
 
       <form
@@ -97,43 +81,7 @@ const Welcome = () => {
       </form>
 
       {error && <p className="text-red-500 mt-4">{error}</p>}
-
-      {/* Table to display the formats */}
-      {formats.length > 0 && (
-        <div className="mt-6 w-full max-w-4xl overflow-x-auto">
-          <table className="table-auto w-full text-left text-gray-300">
-            <thead>
-              <tr>
-                {/* <th className="px-4 py-2">Format ID</th> */}
-                {/* <th className="px-4 py-2">Protocol</th> */}
-                <th className="px-4 py-2">Resolution</th>
-                <th className="px-4 py-2">Format</th>
-                <th className="px-4 py-2">File Size</th>
-                <th className="px-4 py-2">Format Note</th>
-              </tr>
-            </thead>
-            <tbody>
-              {formats.map((format) => (
-                <tr
-                  key={format.format_id}
-                  className="cursor-pointer hover:bg-gray-700"
-                  onClick={() => handleRowClick(format)}
-                >
-                  {/* <td className="px-4 py-2">{format.format_id}</td> */}
-                  {/* <td className="px-4 py-2">{format.protocol || "N/A"}</td> */}
-                  <td className="px-4 py-2">{format.resolution || "N/A"}</td>
-
-                  <td className="px-4 py-2">{format.format}</td>
-                  <td className="px-4 py-2">
-                    {formatFileSize(format.filesize || format.filesize_approx)}
-                  </td>
-                  <td className="px-4 py-2">{format.format_note || "N/A"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      {formats.length > 0 && <FormatTable formats={formats} onRowClick={handleRowClick} />}
     </div>
   );
 };
