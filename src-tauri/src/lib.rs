@@ -2,30 +2,27 @@ use std::process::Command;
 use std::str;
 use tauri::command;
 
-// Command to fetch video formats using yt-dlp
+// Command to fetch video formats using yt-dlp and return JSON output
 #[command]
-fn get_video_formats(url: String) -> Result<Vec<String>, String> {
-    // Run the yt-dlp command
+fn get_video_formats(url: String) -> Result<String, String> {
     let output = Command::new("yt-dlp")
-        .arg("-F") // The -F flag lists all available formats
+        .arg("-j")
+        .arg("--skip-download") // Ensure no downloading happens
         .arg(url)
         .output();
 
     match output {
         Ok(output) => {
             if output.status.success() {
-                // Convert the output to a string
-                let formats = str::from_utf8(&output.stdout)
+                let json_output = str::from_utf8(&output.stdout)
                     .unwrap_or("")
-                    .lines()
-                    .skip(1) // Skip header
-                    .map(|line| line.to_string()) // Collect formats
-                    .collect::<Vec<String>>();
-
-                // Return the list of formats
-                Ok(formats)
+                    .to_string();
+                Ok(json_output)
             } else {
-                Err("Error running yt-dlp".to_string())
+                let error_message = str::from_utf8(&output.stderr)
+                    .unwrap_or("Unknown error occurred")
+                    .to_string();
+                Err(format!("yt-dlp error: {}", error_message))
             }
         }
         Err(err) => Err(format!("Failed to execute yt-dlp: {}", err)),
