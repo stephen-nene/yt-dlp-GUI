@@ -15,7 +15,7 @@ import { message } from "antd";
 
 function App() {
   const [darkMode, setDarkMode] = useState(false);
-  const [YtDlp, setYtDlp] = useState(false);
+  const [YtDlp, setYtDlp] = useState(!false);
 
   useEffect(() => {
     const checkYtDlpAvailability = async () => {
@@ -32,8 +32,9 @@ function App() {
         setYtDlp(false);
       }
     };
-
-    checkYtDlpAvailability();
+    if (YtDlp === false) {
+      checkYtDlpAvailability();
+    }
   }, []);
 
   return (
